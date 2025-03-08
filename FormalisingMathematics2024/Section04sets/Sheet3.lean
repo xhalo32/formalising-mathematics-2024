@@ -30,18 +30,32 @@ variable (X : Type) -- Everything will be a subset of `X`
   (x y z : X) -- x,y,z are elements of `X` or, more precisely, terms of type `X`
 
 -- x,y,z are elements of `X` or, more precisely, terms of type `X`
-example : x ∉ A → x ∈ A → False := by sorry
+example : x ∉ A → x ∈ A → False := by tauto
 
-example : x ∈ A → x ∉ A → False := by sorry
+example : x ∈ A → x ∉ A → False := by tauto
 
-example : A ⊆ B → x ∉ B → x ∉ A := by sorry
+example : A ⊆ B → x ∉ B → x ∉ A := by tauto
 
 -- Lean couldn't work out what I meant when I wrote `x ∈ ∅` so I had
 -- to give it a hint by telling it the type of `∅`.
-example : x ∉ (∅ : Set X) := by sorry
+example : x ∉ (∅ : Set X) := by tauto
 
-example : x ∈ Aᶜ → x ∉ A := by sorry
+example : x ∈ Aᶜ → x ∉ A := by tauto
 
-example : (∀ x, x ∈ A) ↔ ¬∃ x, x ∈ Aᶜ := by sorry
+example : (∀ x, x ∈ A) ↔ ¬∃ x, x ∈ Aᶜ := by
+  constructor
+  · intro h c
+    tauto
+  · intro h
+    push_neg at h
+    simp_rw [mem_compl_iff] at h
+    exact forall_imp (by tauto) h
 
-example : (∃ x, x ∈ A) ↔ ¬∀ x, x ∈ Aᶜ := by sorry
+example : (∃ x, x ∈ A) ↔ ¬∀ x, x ∈ Aᶜ := by
+  constructor
+  · intro h c
+    tauto
+  · intro h
+    push_neg at h
+    simp_rw [mem_compl_iff] at h
+    exact Exists.imp (by tauto) h

@@ -119,7 +119,7 @@ using `intro`, `exact` and `apply`.
 -/
 /-- Every proposition implies itself. -/
 example : P → P := by
-  sorry
+  exact (.)
   done
 
 /-
@@ -138,26 +138,36 @@ So the next level is asking you prove that `P → (Q → P)`.
 
 -/
 example : P → Q → P := by
-  sorry
+  exact (. |> Function.const _)
   done
 
 /-- If we know `P`, and we also know `P → Q`, we can deduce `Q`.
 This is called "Modus Ponens" by logicians. -/
 example : P → (P → Q) → Q := by
-  sorry
+  exact (· |> ·)
   done
 
 /-- `→` is transitive. That is, if `P → Q` and `Q → R` are true, then
   so is `P → R`. -/
-example : (P → Q) → (Q → R) → P → R := by
-  sorry
-  done
+example : (P → Q) → (Q → R) → P → R := (. |> (. <| . .) .)
+
+def diag : {P Q : Prop} → (P → P → Q) → P → Q := by aesop
+
+theorem gona : {A B C D : Prop} → (C → B → A → D) → (A → B → C → D) := by
+  -- exact fun h a b c => h c b a
+  exact (. |> (((. |> .) . <| . |> .) . . <| . |> .) . . .)
+
+theorem permute3 : {A B C D : Prop} → (C → A → B → D) → (A → B → C → D) := by
+  -- exact fun h a b c => h c a b
+  exact (. |> (. |> ((. |> .) . <| . |> .) . <| . |> .) . . .)
 
 -- If `h : P → Q → R` with goal `⊢ R` and you `apply h`, you'll get
 -- two goals! Note that tactics operate on only the first goal.
-example : (P → Q → R) → (P → Q) → P → R := by
-  sorry
-  done
+example : (P → Q → R) → (P → Q) → P → R :=
+  (. |> (. <| . .) .) diag (. |> (. |> ((. |> .) . <| . |> .) . <| . |> .) . . .)
+  (. |> (. |> . <| . |> .) . . : _ → _ → _ → _ → _)
+  -- have : P → P → (P → Q → R) → (P → Q) → R
+  -- exact fun p1 p2 pqr pq => p1 |> pqr <| pq p2
 
 /-
 
@@ -170,13 +180,23 @@ in this section, where you'll learn some more tactics.
 -/
 variable (S T : Prop)
 
-example : (P → R) → (S → Q) → (R → T) → (Q → R) → S → T := by
-  sorry
-  done
+example : (P → R) → (S → Q) → (R → T) → (Q → R) → S → T := (Function.const _ (. |> (. |> (. |> (. <| . <| . |> .))) . . .))
+-- Noticed that removing `|> (. [..] )` simplifies the expression
 
-example : (P → Q) → ((P → Q) → P) → Q := by
-  sorry
-  done
+example : (P → R) → (S → Q) → (R → T) → (Q → R) → S → T := (Function.const _ (. |> (. |> (. <| . <| . |> .)) . . .))
+
+example : (P → R) → (S → Q) → (R → T) → (Q → R) → S → T := (Function.const _ (. |> (. <| . <| . |> .) . . .))
+
+example : (P → R) → (S → Q) → (R → T) → (Q → R) → S → T := (Function.const _ (. |> (. <| . <| . .) . .))
+
+example : (P → Q) → ((P → Q) → P) → Q := diag (. <| (. |> .) . .)
+  -- have : (P → Q) → (P → Q) → ((P → Q) → P) → Q
+  -- exact fun pq1 pq2 pqp => pq2 <| pqp pq1
+  -- exact (. <| (. |> .) . .)
+
+  -- apply diag (P → Q)
+  -- exact this
+  -- done
 
 example : ((P → Q) → R) → ((Q → R) → P) → ((R → P) → Q) → P := by
   sorry

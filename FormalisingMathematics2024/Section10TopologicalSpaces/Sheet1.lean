@@ -35,9 +35,9 @@ example : TopologicalSpace X where
     triv
   isOpen_inter := by
     -- let s and t be two sets
-    intros s t
+    intro s t
     -- assume they're open
-    intros hs ht
+    intro hs ht
     -- Is their intersection open?
     -- By definition, this means "can you prove `True`"?
     triv
@@ -57,19 +57,73 @@ splitting into cases in this proof.
 example : TopologicalSpace X where
   IsOpen (s : Set X) := s = ∅ ∨ s = Set.univ -- empty set or whole thing
   isOpen_univ := by
-    sorry -- use `dsimp`
+    dsimp
+    right
+    rfl
   isOpen_inter := by
-    sorry -- use `cases'`
+    dsimp
+    intros s t hs ts
+    cases' hs <;> subst s
+    · cases' ts <;> subst t <;> left <;> apply Set.empty_inter
+    · cases' ts <;> subst t
+      · left
+        apply Set.inter_empty
+      · right
+        apply Set.inter_self
+
   isOpen_sUnion := by
     intro F
     -- do cases on whether Set.univ ∈ F
-    sorry
+    intro h
+    dsimp at h
+    by_cases hf : Set.univ ∈ F
+    · right
+      have gona := h _ hf
+      cases' gona with h1
+      · ext x
+        constructor
+        · intro xF
+          apply Set.mem_univ
+        · intro h2
+          rw [h1] at h2
+          exfalso
+          apply Set.not_mem_empty x h2
+      · ext x
+        constructor
+        · intro xF
+          apply Set.mem_univ
+        · intro h2
+          rw [Set.mem_sUnion]
+          use Set.univ
+    · left
+      ext x
+      constructor
+      · intro xF
+        rw [Set.mem_sUnion] at xF
+        cases' xF with s sh
+        cases' sh with sF xs
+        have : s = ∅
+        · by_contra
+          have gona := h _ sF
+          cases' gona
+          · contradiction
+          · subst s
+            contradiction
+        subst s
+        assumption
+      · intro h1
+        exfalso
+        apply Set.not_mem_empty x h1
 
 -- `isOpen_empty` is the theorem that in a topological space, the empty set is open.
 -- Can you prove it yourself? Hint: arbitrary unions are open
 
 example (X : Type) [TopologicalSpace X] : IsOpen (∅ : Set X) := by
-  sorry
+  -- have s : Set (Set X) := ∅
+  rw [← Set.sUnion_empty]
+  apply isOpen_sUnion
+  intro t th
+  contradiction
 
 -- The reals are a topological space. Let's check Lean knows this already
 #synth TopologicalSpace ℝ
@@ -83,13 +137,63 @@ def Real.IsOpen (s : Set ℝ) : Prop :=
 
 -- Now let's prove the axioms
 lemma Real.isOpen_univ : Real.IsOpen (Set.univ : Set ℝ) := by
-  sorry
+  intro x _xh
+  use 1
+  constructor
+  · exact Real.zero_lt_one
+  · intro y _h
+    -- exact _xh -- WTF
+    exact Set.mem_univ _
 
 lemma Real.isOpen_inter (s t : Set ℝ) (hs : IsOpen s) (ht : IsOpen t) : IsOpen (s ∩ t) := by
-  sorry
+  intro x h
+  cases' h with xs xt
+  · apply hs at xs
+    apply ht at xt
+    cases' xs with δs δsh
+    cases' xt with δt δth
+    use min δs δt
+    constructor
+    · exact lt_min δsh.1 δth.1
+    · intro y
+      intro h
+      cases' h with hl hr
+      constructor
+      · apply δsh.2
+        have h2 : δs ≥ min δs δt := by exact min_le_left δs δt
+        constructor
+        · calc x - δs ≤ x - min δs δt := by exact sub_le_sub_left h2 x
+               _      < y             := by exact hl
+        · calc y < x + min δs δt       := by exact hr
+               _ ≤ x + δs             := by exact add_le_add_left h2 x
+      · apply δth.2
+        have h2 : δt ≥ min δs δt := by exact min_le_right δs δt
+        constructor
+        · calc x - δt ≤ _ := by exact sub_le_sub_left h2 x
+              _       < y := by exact hl
+        · calc y < _                  := by exact hr
+               _ ≤ x + δt             := by exact add_le_add_left h2 x
 
 lemma Real.isOpen_sUnion (F : Set (Set ℝ)) (hF : ∀ s ∈ F, IsOpen s) : IsOpen (⋃₀ F) := by
-  sorry
+  intro x xh
+  rw [Set.mem_sUnion] at xh
+  cases' xh with s sh
+  cases' sh with sf xs
+  have gona := hF _ sf
+  cases' gona _ xs with δ h
+  cases' h with δh ho
+  use δ
+  constructor
+  · assumption
+  · intro y h
+    cases' h with hl hr
+    rw [Set.mem_sUnion]
+    use s
+    constructor
+    · assumption
+    · apply ho
+      constructor
+      repeat assumption
 
 -- now we put everything together using the notation for making a structure
 example : TopologicalSpace ℝ where

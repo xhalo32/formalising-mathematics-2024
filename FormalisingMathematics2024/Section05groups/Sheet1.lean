@@ -51,18 +51,18 @@ example (g : G) : g⁻¹ * g = 1 :=
 -- with the name of the axiom it found. Note also that you can instead *guess*
 -- the names of the axioms. For example what do you think the proof of `1 * a = a` is called?
 example (a b c : G) : a * b * c = a * (b * c) := by
-  sorry
+  rw [mul_assoc]
 
 -- can be found with `library_search` if you didn't know the answer already
 example (a : G) : a * 1 = a := by
-  sorry
+  rw [mul_one]
 
 -- Can you guess the last two?
 example (a : G) : 1 * a = a := by
-  sorry
+  rw [one_mul]
 
 example (a : G) : a * a⁻¹ = 1 := by
-  sorry
+  rw [mul_inv_self]
 
 -- As well as the axioms, Lean has many other standard facts which are true
 -- in all groups. See if you can prove these from the axioms, or find them
@@ -70,27 +70,80 @@ example (a : G) : a * a⁻¹ = 1 := by
 -- let a,b,c be elements of G in the below.
 variable (a b c : G)
 
+/-
+Group class hierarchy:
+`Group`: Just a `DivInvMonoid` with `mul_left_inv`
+\- `DivInvMonoid`: Combines these three with compatibility requirements such as `div_eq_mul_inv` and `zpow_zero`
+   |- `Div`: `/` notation
+   |- `Inv`: Every element has an inverse. `⁻¹` notation
+   \- `Monoid`: Combines these two with compatibility such as `pow_zero`
+       |- `Semigroup`: Provides `mul_assoc`
+          \- `Mul`: `*` notation
+       \- `MulOneClass`: Provides `one_mul` and `mul_one`
+          |- `One`: there is always a neutral `1` element
+          \- `Mul`
+
+The group axioms are as follows:
+1. The operation `*` is associative and has a neutral element `1`.
+2. For all elements `a`, there exists an inverse `a⁻¹` such that `a⁻¹ * a = 1`.
+-/
+
+#check mul_assoc -- `*` is associative
+#check One.one -- neutral element `1`
+#check one_mul
+#check mul_one
+#check mul_left_inv
+
+-- Here are some of the compatibility requirements:
+#check div_eq_mul_inv
+#check zpow_zero
+#check pow_zero
+
 example : a⁻¹ * (a * b) = b := by
-  sorry
+  rw [← mul_assoc, mul_left_inv, one_mul]
 
-example : a * (a⁻¹ * b) = b := by
-  sorry
+lemma example1 : a * (a⁻¹ * b) = b := by
+  rw [← mul_assoc]
+  nth_rw 1 [← one_mul a]
+  rw [← mul_left_inv a⁻¹, mul_assoc a⁻¹⁻¹, mul_left_inv, mul_one, mul_left_inv, one_mul]
 
-example {a b c : G} (h1 : b * a = 1) (h2 : a * c = 1) : b = c := by
+example (h1 : b * a = 1) (h2 : a * c = 1) : b = c := by
   -- hint for this one if you're doing it from first principles: `b * (a * c) = (b * a) * c`
-  sorry
+  apply congrArg (. * c) at h1
+  apply congrArg (b * .) at h2
+  rw [one_mul] at h1
+  rw [← mul_assoc, mul_one] at h2
+  exact Eq.trans h2.symm h1
 
-example : a * b = 1 ↔ a⁻¹ = b := by
-  sorry
+lemma example3 : a * b = 1 ↔ a⁻¹ = b := by
+  constructor
+  · intro h
+    calc a⁻¹ = a⁻¹ * 1      := by rw [mul_one]
+          _ = a⁻¹ * a * b  := by rw [← h, mul_assoc]
+          _ = 1 * b         := by rw [mul_left_inv]
+          _ = b             := by rw [one_mul]
+  · intro h
+    calc a * b = a * a⁻¹                := by rw [h]
+             _ = 1 * a * a⁻¹            := by rw [one_mul]
+             _ = a⁻¹⁻¹ * a⁻¹ * a * a⁻¹     := by rw [mul_left_inv]
+             _ = a⁻¹⁻¹ * 1 * a⁻¹          := by rw [mul_assoc a⁻¹⁻¹, mul_left_inv]
+             _ = a⁻¹⁻¹ * a⁻¹              := by rw [mul_one]
+             _ = 1                      := by rw [mul_left_inv]
 
 example : (1 : G)⁻¹ = 1 := by
-  sorry
+  nth_rw 2 [← mul_left_inv 1]
+  rw [mul_one]
 
-example : a⁻¹⁻¹ = a := by
-  sorry
+lemma example5 : a⁻¹⁻¹ = a := by
+  nth_rw 2 [← one_mul a]
+  rw [← mul_left_inv a⁻¹]
+  rw [mul_assoc, mul_left_inv, mul_one]
 
 example : (a * b)⁻¹ = b⁻¹ * a⁻¹ := by
-  sorry
+  rw [← example3]
+  rw [mul_assoc, example1]
+  nth_rw 1 [← example5 (a := a)]
+  rw [mul_left_inv]
 
 /-
 
@@ -110,4 +163,14 @@ example : (b⁻¹ * a⁻¹)⁻¹ * 1⁻¹⁻¹ * b⁻¹ * (a⁻¹ * a⁻¹⁻¹�
 
 -- Try this trickier problem: if g^2=1 for all g in G, then G is abelian
 example (h : ∀ g : G, g * g = 1) : ∀ g h : G, g * h = h * g := by
-  sorry
+  intro g f
+  calc g * f = g * f * 1 := by rw [mul_one]
+  _ = g * f * f⁻¹ * f⁻¹  := by rw [← h f⁻¹, ← mul_assoc]
+  _ = g * f⁻¹  := by rw [mul_assoc g, mul_right_inv, mul_one]
+  _ = 1 * g * f⁻¹  := by rw [one_mul]
+  _ = g⁻¹ * g⁻¹ * g * f⁻¹  := by rw [← h g⁻¹]
+  _ = g⁻¹ * f⁻¹  := by rw [mul_assoc g⁻¹, mul_left_inv, mul_one]
+  _ = g⁻¹ * f⁻¹ * 1 := by rw [mul_one]
+  _ = g⁻¹ * f⁻¹ * (f * g) * (f * g) := by rw [← h (f * g), ← mul_assoc]
+  _ = g⁻¹ * (f⁻¹ * f) * g * (f * g) := by simp only [mul_assoc]
+  _ = f * g  := by simp only [mul_left_inv, mul_one, one_mul]

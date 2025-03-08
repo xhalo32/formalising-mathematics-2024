@@ -66,14 +66,14 @@ example : G →* K :=
 -- The next three lemmas are pretty standard, but they are also in fact
 -- the axioms that show that groups form a category.
 theorem comp_id : φ.comp (MonoidHom.id G) = φ := by
-  sorry
+  rfl
 
 theorem id_comp : (MonoidHom.id H).comp φ = φ := by
-  sorry
+  rfl
 
 theorem comp_assoc {L : Type} [Group L] (ρ : K →* L) :
     (ρ.comp ψ).comp φ = ρ.comp (ψ.comp φ) := by
-  sorry
+  rfl
 
 -- The kernel of a group homomorphism `φ` is a subgroup of the source group.
 -- The elements of the kernel are *defined* to be `{x | φ x = 1}`.
@@ -81,6 +81,26 @@ theorem comp_assoc {L : Type} [Group L] (ρ : K →* L) :
 -- `φ.ker` *means* `monoid_hom.ker φ` because `φ` has type `monoid_hom [something]`
 example (φ : G →* H) : Subgroup G :=
   φ.ker
+
+-- Let's verify the kernel is a subgroup
+example (φ : G →* H) : 1 ∈ {x | φ x = 1} := by
+  rw [Set.mem_setOf]
+  exact φ.map_one
+
+example (φ : G →* H) (g h : G) (hg : g ∈ {x | φ x = 1}) (hh : h ∈ {x | φ x = 1})
+  : g * h ∈ {x | φ x = 1} := by
+  rw [Set.mem_setOf] at *
+  rw [← mul_one 1]
+  nth_rw 1 [← hg]
+  nth_rw 1 [← hh]
+  exact φ.map_mul g h
+
+example (φ : G →* H) (g : G) (hg : g ∈ {x | φ x = 1}) : g⁻¹ ∈ {x | φ x = 1} := by
+  rw [Set.mem_setOf] at *
+  rw [← inv_mul_self (φ g)]
+  nth_rw 2 [hg]
+  rw [mul_one]
+  exact φ.map_inv g
 
 -- or `monoid_hom.ker φ`
 example (φ : G →* H) (x : G) : x ∈ φ.ker ↔ φ x = 1 := by rfl
@@ -108,26 +128,91 @@ example (φ : G →* H) (T : Subgroup H) (x : G) : x ∈ T.comap φ ↔ φ x ∈
 -- Here are some basic facts about these constructions.
 -- Preimage of a subgroup along the identity map is the same subgroup
 example (S : Subgroup G) : S.comap (MonoidHom.id G) = S := by
-  sorry
+  -- rfl
+  ext g
+  constructor
+  · intro gh
+    rw [S.mem_comap] at gh
+    exact gh
+  · intro gh
+    rw [S.mem_comap]
+    exact gh
 
 -- Image of a subgroup along the identity map is the same subgroup
 example (S : Subgroup G) : S.map (MonoidHom.id G) = S := by
-  sorry
+  -- rfl won't work because '' has an existential quantifier
+  ext g
+  constructor
+  · intro gh
+    rw [S.mem_map] at gh
+    obtain ⟨g, gh, rfl⟩ := gh
+    exact gh
+  · intro gh
+    rw [S.mem_map]
+    exact ⟨g, gh, rfl⟩
 
 -- preimage preserves `≤` (i.e. if `S ≤ T` are subgroups of `H` then `φ⁻¹(S) ≤ φ⁻¹(T)`)
 example (φ : G →* H) (S T : Subgroup H) (hST : S ≤ T) : S.comap φ ≤ T.comap φ := by
-  sorry
+  intro x xh
+  exact hST xh
+
+
+lemma and_imp_right {a b c : Prop} : (a → b) → (a ∧ c → b ∧ c) := by
+  tauto
+
+lemma and_imp_left {a b c : Prop} : (a → b) → (c ∧ a → c ∧ b) := by
+  tauto
 
 -- image preserves `≤` (i.e. if `S ≤ T` are subgroups of `G` then `φ(S) ≤ φ(T)`)
 example (φ : G →* H) (S T : Subgroup G) (hST : S ≤ T) : S.map φ ≤ T.map φ := by
-  sorry
+  intro x xh
+  exact Exists.imp (fun a => and_imp_right (hST .)) xh -- hST needs to be passed an argument for it to turn into →
 
 -- Pulling a subgroup back along one homomorphism and then another, is equal
 -- to pulling it back along the composite of the homomorphisms.
 example (φ : G →* H) (ψ : H →* K) (U : Subgroup K) : U.comap (ψ.comp φ) = (U.comap ψ).comap φ := by
-  sorry
+  -- rfl
+  -- Let's give a name for the hidden subgroup
+  let T_set := ψ ⁻¹' U
+  let T : Subgroup H := U.comap ψ
+  let S : Subgroup G := T.comap φ -- this is not really needed
+  change Subgroup.comap (MonoidHom.comp ψ φ) U = Subgroup.comap φ T
+
+  ext g
+  constructor
+  · intro gh
+    rw [T.mem_comap]
+    rw [U.mem_comap]
+    rw [U.mem_comap] at gh
+    exact gh
+  · intro gh
+    -- change g ∈ S at gh
+    rw [T.mem_comap] at gh
+    rw [U.mem_comap] at gh
+    rw [U.mem_comap]
+    rw [MonoidHom.comp_apply]
+    exact gh
 
 -- Pushing a subgroup along one homomorphism and then another is equal to
 --  pushing it forward along the composite of the homomorphisms.
 example (φ : G →* H) (ψ : H →* K) (S : Subgroup G) : S.map (ψ.comp φ) = (S.map φ).map ψ := by
-  sorry
+  -- Let's give a name for the hidden subgroup
+
+  -- T = φ '' S : Subgroup H
+  let T : Subgroup H := S.map φ
+  -- U = ψ '' T : Subgroup K
+  let U : Subgroup K := T.map ψ
+  change Subgroup.map (MonoidHom.comp ψ φ) S = Subgroup.map ψ T
+
+  ext g
+  constructor
+  · rintro ⟨g, gh, rfl⟩
+    -- `gh : g ∈ ↑S` says that `g` is a member of the sets of the subgroup, which is by definition, that it's a part of the subgroup
+    change g ∈ S at gh -- because they are equivalent, this is not strictly necessary
+    rw [MonoidHom.comp_apply]
+    apply T.mem_map_of_mem
+    apply S.mem_map_of_mem
+    exact gh
+  · rintro ⟨h, hh, rfl⟩
+    -- change h ∈ T at hh
+    exact Exists.imp (fun a => and_imp_left (congrArg (ψ .))) hh

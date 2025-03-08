@@ -79,18 +79,18 @@ Let's prove some theorems.
 
 -/
 
-example : A ⊆ A := by sorry
+example : A ⊆ A := by rfl
 
-example : A ⊆ B → B ⊆ C → A ⊆ C := by sorry
+example : A ⊆ B → B ⊆ C → A ⊆ C := by tauto
 
-example : A ⊆ A ∪ B := by sorry
+example : A ⊆ A ∪ B := by tauto
 
-example : A ∩ B ⊆ A := by sorry
+example : A ∩ B ⊆ A := by intro x xh; cases xh; assumption
 
-example : A ⊆ B → A ⊆ C → A ⊆ B ∩ C := by sorry
+example : A ⊆ B → A ⊆ C → A ⊆ B ∩ C := by intro h1 h2 x xh; constructor <;> tauto
 
-example : B ⊆ A → C ⊆ A → B ∪ C ⊆ A := by sorry
+example : B ⊆ A → C ⊆ A → B ∪ C ⊆ A := by intro h1 h2 x xh; cases xh <;> tauto
 
-example : A ⊆ B → C ⊆ D → A ∪ C ⊆ B ∪ D := by sorry
+example : A ⊆ B → C ⊆ D → A ∪ C ⊆ B ∪ D := by intro h1 h2 x xh; cases xh <;> tauto
 
-example : A ⊆ B → C ⊆ D → A ∩ C ⊆ B ∩ D := by sorry
+example : A ⊆ B → C ⊆ D → A ∩ C ⊆ B ∩ D := by intro h1 h2 x xh; cases xh; constructor <;> tauto

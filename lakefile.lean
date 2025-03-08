@@ -6,7 +6,8 @@ package «formalising-mathematics-2024» where
     ⟨`pp.unicode.fun, true⟩, -- pretty-prints `fun a ↦ b`
     ⟨`pp.proofs.withType, false⟩,
     ⟨`autoImplicit, false⟩,
-    ⟨`relaxedAutoImplicit, false⟩
+    ⟨`relaxedAutoImplicit, false⟩,
+    ⟨`linter.unusedVariables, false⟩
   ]
 
 require mathlib from git

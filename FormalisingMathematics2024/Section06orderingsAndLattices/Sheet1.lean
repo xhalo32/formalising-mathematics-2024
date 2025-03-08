@@ -57,10 +57,26 @@ variable (a b c d : X)
 
 -- See if you can prove these basic facts about partial orders.
 example : a ≤ a := by
-  sorry
+  rfl
 
 example (hab : a ≤ b) (hbc : b ≤ c) (hcd : c ≤ d) : a ≤ d := by
-  sorry
+  try rfl;
+  try apply le_trans; tauto
+  try rfl;
+  try apply le_trans; tauto
+  try rfl;
+  try apply le_trans; tauto
+  try rfl;
+  try apply le_trans; tauto
+  try rfl;
+  try apply le_trans; tauto
+  try rfl;
+  try apply le_trans; tauto
+  try rfl;
+  try apply le_trans; tauto
+
 
 example (hab : a ≤ b) (hbc : b ≤ c) (hca : c ≤ a) : a = b := by
-  sorry
+  apply le_antisymm
+  tauto
+  apply le_trans <;> tauto

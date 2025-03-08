@@ -35,22 +35,44 @@ variable (X : Type)
   (x y z : X)
 
 -- x,y,z are elements of `X` or, more precisely, terms of type `X`
-example : A ∪ A = A := by sorry
+example : A ∪ A = A := by
+  simp_all
 
-example : A ∩ A = A := by sorry
+example : A ∩ A = A := by
+  simp_all
 
-example : A ∩ ∅ = ∅ := by sorry
+example : A ∩ ∅ = ∅ := by
+  simp_all
 
-example : A ∪ univ = univ := by sorry
+example : A ∪ univ = univ := by
+  simp_all
 
-example : A ⊆ B → B ⊆ A → A = B := by sorry
+example : A ⊆ B → B ⊆ A → A = B := by
+  intros
+  ext
+  tauto
 
-example : A ∩ B = B ∩ A := by sorry
+example : A ∩ B = B ∩ A := by
+  ext
+  simp_all
+  tauto
 
-example : A ∩ (B ∩ C) = A ∩ B ∩ C := by sorry
+example : A ∩ (B ∩ C) = A ∩ B ∩ C := by
+  ext
+  simp_all
+  tauto
 
-example : A ∪ (B ∪ C) = A ∪ B ∪ C := by sorry
+example : A ∪ (B ∪ C) = A ∪ B ∪ C := by
+  ext
+  simp_all
+  tauto
 
-example : A ∪ B ∩ C = (A ∪ B) ∩ (A ∪ C) := by sorry
+example : A ∪ B ∩ C = (A ∪ B) ∩ (A ∪ C) := by
+  ext
+  simp_all
+  tauto
 
-example : A ∩ (B ∪ C) = A ∩ B ∪ A ∩ C := by sorry
+example : A ∩ (B ∪ C) = A ∩ B ∪ A ∩ C := by
+  ext
+  simp_all
+  tauto

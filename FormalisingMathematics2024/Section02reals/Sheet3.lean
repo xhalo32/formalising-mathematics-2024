@@ -104,12 +104,29 @@ theorem tendsTo_add_const {a : ℕ → ℝ} {t : ℝ} (c : ℝ) (h : TendsTo a t
   -- a `forall` hypothesis to specific values.
   -- Look up the explanations of these tactics in Part C
   -- of the course notes.  rw [tendsTo_def] at h ⊢
-  sorry
+  rw [tendsTo_def] at *
+  intro ε εh
+  specialize h ε εh
+  cases' h with B h
+  use B
+  intro n nh
+  specialize h n nh
+  norm_num
+  assumption
 
 -- you're not quite ready for this one yet though.
 /-- If `a(n)` tends to `t` then `-a(n)` tends to `-t`.  -/
 example {a : ℕ → ℝ} {t : ℝ} (ha : TendsTo a t) : TendsTo (fun n => -a n) (-t) := by
-  sorry
+  rw [tendsTo_def] at *
+  intro ε εh
+  specialize ha ε εh
+  cases' ha with B h
+  use B
+  intro n nh
+  specialize h n nh
+  norm_num
+  rw [abs_lt] at *
+  constructor <;> linarith
 -- Try this one. You don't know enough material to do it yet!
 -- Where do you get stuck? The problem is that I didn't teach you
 -- any "API" for (a.k.a. theorems about) the absolute value function |.|.
