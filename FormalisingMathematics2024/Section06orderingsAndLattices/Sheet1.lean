@@ -67,13 +67,6 @@ example (hab : a ≤ b) (hbc : b ≤ c) (hcd : c ≤ d) : a ≤ d := by
   try rfl;
   try apply le_trans; tauto
   try rfl;
-  try apply le_trans; tauto
-  try rfl;
-  try apply le_trans; tauto
-  try rfl;
-  try apply le_trans; tauto
-  try rfl;
-  try apply le_trans; tauto
 
 
 example (hab : a ≤ b) (hbc : b ≤ c) (hca : c ≤ a) : a = b := by

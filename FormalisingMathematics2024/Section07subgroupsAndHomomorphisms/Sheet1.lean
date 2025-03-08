@@ -225,4 +225,22 @@ theorem conjugate_eq_of_abelian (habelian : ∀ a b : G, a * b = b * a) : conjug
     refine ⟨h, ?_⟩
     rw [habelian, ← mul_assoc, inv_mul_self, one_mul]
 
+
+-- Now for some normal subgroups!
+
+
+
+-- Conjugating a normal subgroup by an element of the subgroup gets a normal subgroup.
+theorem normal_conjugate {N : Subgroup G} (g : G) {hn : Subgroup.Normal N} (hg : g ∈ N) : Subgroup.Normal (conjugate N g) where
+  conj_mem n nh g' := by
+    rw [mem_conjugate_iff] at *
+    obtain ⟨h, hh, rfl⟩ := nh
+    use g⁻¹ * (g' * g * h * g⁻¹ * g'⁻¹) * g -- inside parens is the lhs
+    refine ⟨?_, by group⟩
+    suffices (g⁻¹ * g' * g) * h * (g⁻¹ * g' * g)⁻¹ ∈ N by
+      group at this
+      group
+      exact this
+    apply hn.conj_mem _ hh
+
 end Section7sheet1

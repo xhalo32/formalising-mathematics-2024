@@ -81,3 +81,5 @@ example (L : Type) [Lattice L] :
       rw [inf_comm] at h3
       apply le_trans' h3
       exact le_rfl
+
+-- Phew that was hard

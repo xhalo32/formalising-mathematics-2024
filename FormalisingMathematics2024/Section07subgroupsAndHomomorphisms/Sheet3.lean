@@ -27,7 +27,6 @@ example : Group (G ⧸ N) := by
   infer_instance
   done
 
-
 -- The group homomorphism from `G` to `G ⧸ N`
 example : G →* G ⧸ N :=
   QuotientGroup.mk' N
@@ -69,7 +68,22 @@ There is of course much more API, but if you want to get some practice you can
 just develop some of it yourself from these two functions.
 -/
 example : (mk' N).ker = N := by
-  sorry
+  ext g
+  constructor
+  · intro hg
+    rw [MonoidHom.mem_ker] at hg
+    have := @eq_one_iff _ _ N _ g
+    rw [← eq_one_iff]
+    exact hg
+  · intro hg
+    rw [← eq_one_iff] at hg
+    rw [MonoidHom.mem_ker]
+    exact hg
+
+-- This is a bit confusingly named lemma about `[x] = 1` in `G ⧸ N` being the same as `x ∈ N`
+#check eq_one_iff
+
+-- https://en.wikipedia.org/wiki/Quotient_group#Definition
 
 /-
 # Universal properties
@@ -83,6 +97,15 @@ variable (H : Type) [Group H] (φ : G →* H) (h : ∀ x, x ∈ N → φ x = 1)
 
 example : G ⧸ N →* H :=
   lift N φ h -- the full name of this function is QuotientGroup.lift
+
+-- h is equivalent to `N ≤ φ.ker`
+example : N ≤ φ.ker := by
+  intro g gh
+  rw [φ.mem_ker]
+  exact h _ gh
+
+#check QuotientGroup.lift
+#check Quotient.lift
 
 /-
 The proof that if `x : G` then `(quotient_group.lift N φ h) ((quotient_group.mk' N) x) = φ x`
@@ -107,11 +130,18 @@ this equality.
 -/
 variable {G H φ N}
 variable {P : Subgroup H} [P.Normal]
+variable (h : N.map φ ≤ P) -- how to make `h` implicit, so that I can use `ρ` directly?
 
-def ρ (h : N.map φ ≤ P) : G ⧸ N →* H ⧸ P :=
+def ρ : G ⧸ N →* H ⧸ P :=
   lift N ((mk' P).comp φ) (by
     -- we are using `lift` so we need to supply the proof that `(mk' P).comp φ` kills `N`
-    sorry
+    intro n nh
+    rw [MonoidHom.mem_ker]
+    rw [MonoidHom.comp_apply]
+    change ↑(φ n) = (1 : H ⧸ P) -- why is this change required?
+    rw [eq_one_iff]
+    apply h
+    exact Subgroup.mem_map_of_mem _ nh
   )
 
 -- Now let's prove that `ρ ∘ mk' N = mk' P ∘ φ`
@@ -125,7 +155,7 @@ def ρ (h : N.map φ ≤ P) : G ⧸ N →* H ⧸ P :=
   G ⧸ N --ρ--> H ⧸ P
 -/
 
-example (h : N.map φ ≤ P) (x : G) : ρ h (mk' N x) = mk' P (φ x) := by
+example : ρ h ∘ (mk' N) = mk' P ∘ φ := by
   -- this proof does my head in
   rfl
 

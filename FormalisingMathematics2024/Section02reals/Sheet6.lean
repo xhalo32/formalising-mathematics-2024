@@ -32,8 +32,14 @@ theorem tendsTo_thirtyseven_mul (a : ℕ → ℝ) (t : ℝ) (h : TendsTo a t) :
     TendsTo (fun n ↦ 37 * a n) (37 * t) := by
   rw [tendsTo_def]
   intro ε εh
-  cases' h ε εh with x xh
-
+  specialize h (ε / 37) (by linarith)
+  refine Exists.imp (fun N => forall_imp fun n => forall_imp fun hn => ?_) h
+  intro h
+  rw [← mul_sub, abs_mul, abs_eq_self.mpr]
+  · rw [lt_div_iff] at h
+    · linarith
+    · linarith
+  · linarith
 
 /-- If `a(n)` tends to `t` and `c` is a positive constant then
 `c * a(n)` tends to `c * t`. -/

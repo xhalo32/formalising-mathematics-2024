@@ -14,7 +14,18 @@ open Section2sheet3solutions
 
 -- you can maybe do this one now
 theorem tendsTo_neg {a : ℕ → ℝ} {t : ℝ} (ha : TendsTo a t) : TendsTo (fun n ↦ -a n) (-t) := by
-  sorry
+  -- I wrote this much later than the other solutions
+  -- This chain of forall and exists imps matches the quantifiers of the goal with the hypothesis ha
+  refine forall_imp (fun ε =>
+    forall_imp fun εh =>
+    Exists.imp fun N =>
+    forall_imp fun n =>
+    forall_imp fun nh =>
+    ?_
+  ) ha
+  intro h
+  rw [← neg_sub', abs_neg]
+  exact h
 
 /-
 `tendsTo_add` is the next challenge. In a few weeks' time I'll
