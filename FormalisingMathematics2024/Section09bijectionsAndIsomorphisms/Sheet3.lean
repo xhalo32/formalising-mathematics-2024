@@ -25,9 +25,10 @@ example (X : Type) : X ≃ X :=
   { toFun := fun x ↦ x
     invFun := fun y ↦ y
     left_inv := by
-      sorry
+      tauto
     right_inv := by
-      sorry }
+      tauto
+   }
 
 -- now let's see you define `Equiv.symm` and `Equiv.trans`.
 -- Let's start with `Equiv.symm`.
@@ -39,9 +40,9 @@ example (X Y : Type) (e : X ≃ Y) : Y ≃ X :=
     -- you could write `λ x, e.inv_fun x` instead
     invFun := e.toFun
     left_inv := by
-      sorry
+      exact e.right_inv
     right_inv := by
-      sorry }
+      exact e.left_inv }
 
 -- Actually, you're not supposed to write `e.toFun` and `e.invFun`
 -- directly, because `X ≃ Y` has got a coercion to `X → Y`,
@@ -60,9 +61,24 @@ example (X Y Z : Type) (eXY : X ≃ Y) (eYZ : Y ≃ Z) : X ≃ Z :=
   { toFun := fun x => eYZ (eXY x)
     invFun := fun z => eXY.symm (eYZ.symm z)
     left_inv := by
-      sorry
+      intro x
+      dsimp
+      have := eYZ.left_inv
+      -- rw [Function.LeftInverse] at this
+      change ∀ x, eYZ.symm (eYZ x) = x at this -- WHYYYY
+      rw [this]
+      have := eXY.left_inv
+      change ∀ x, eXY.symm (eXY x) = x at this -- WHYYYY
+      rw [this]
     right_inv := by
-      sorry
+      intro x
+      dsimp
+      have := eXY.right_inv
+      change ∀ x, eXY (eXY.symm x) = x at this -- WHYYYY
+      rw [this]
+      have := eYZ.right_inv
+      change ∀ x, eYZ (eYZ.symm x) = x at this -- WHYYYY
+      rw [this]
   }
 
 -- Because `Equiv.trans` is already there, we can instead just use it
@@ -77,7 +93,7 @@ example (X Y Z : Type) (eXY : X ≃ Y) (eYZ : Y ≃ Z) : X ≃ Z :=
 -- See if you can make the following bijection using dot notation
 -- (note: I didn't write `by` so Lean is just expecting the term)
 example (A B X : Type) (eAX : A ≃ X) (eBX : B ≃ X) : A ≃ B :=
-  sorry
+  eAX.trans eBX.symm
 
 /-
 
@@ -98,8 +114,21 @@ has an element, i.e. that `A` is nonempty. It's a proposition. So this works:
 def R (X Y : Type) : Prop :=
   ∃ e : X ≃ Y, True
 
-example : Equivalence R := by
-  sorry
+example : Equivalence R where
+  refl := by
+    intro T
+    unfold R
+    use Equiv.refl T
+  symm := by
+    intro T U
+    unfold R
+    rintro ⟨hTU⟩
+    use hTU.symm
+  trans := by
+    intro S T U
+    unfold R
+    rintro ⟨hST⟩ ⟨hTU⟩
+    use hST.trans hTU
 
 -- Remark: the equivalence classes of `R` are called *cardinals*.
 

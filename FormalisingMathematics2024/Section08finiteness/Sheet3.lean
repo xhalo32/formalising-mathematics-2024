@@ -80,7 +80,8 @@ example : ∑ x : Fin 10, x = 45 := by
   rfl
 
 -- Actually I just tricked you. Can you explain this?
-example : ∑ x : Fin 10, x = 25 := by
+example : ∑ x : Fin 10, x = 45 := by
+  -- Addition in Fin 10 is cyclic. 45 (the correct) is congruent to 5, 15, ..., and all these numbers work instead of 45
   rfl
 
 -- Here's a better proof

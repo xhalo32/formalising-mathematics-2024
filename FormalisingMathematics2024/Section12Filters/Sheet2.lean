@@ -46,12 +46,20 @@ open Filter Set
 open scoped Filter
 -- for 𝓟 notation
 
-example (S T : Set α) : 𝓟 S ≤ 𝓟 T ↔ S ⊆ T := sorry
+example (S T : Set α) : 𝓟 S ≤ 𝓟 T ↔ S ⊆ T := by
+  simp [le_def, principal]
+  constructor
+  · intro h
+    apply h
+    rfl
+  · intro sh x th
+    exact sh.trans th
 
 -- Here's another useful lemma about principal filters.
 -- It's called `le_principal_iff` in mathlib but why
 -- not try proving it yourself?
-example (F : Filter α) (S : Set α) : F ≤ 𝓟 S ↔ S ∈ F := sorry
+example (F : Filter α) (S : Set α) : F ≤ 𝓟 S ↔ S ∈ F := by
+  exact le_principal_iff
 
 /-
 
@@ -63,9 +71,16 @@ the intersection of `Fᵢ.sets` is also a filter. Let's check this.
 -/
 def lub {I : Type} (F : I → Filter α) : Filter α where
   sets := {X | ∀ i, X ∈ F i}
-  univ_sets := sorry
-  sets_of_superset := sorry
-  inter_sets := sorry
+  univ_sets := by
+    simp
+  sets_of_superset := by
+    intro s t sh st
+    simp_all
+    intro i
+    exact mem_of_superset (sh i) st
+  inter_sets := by
+    intro s t sh th
+    simp_all
 
 /-
 
@@ -74,11 +89,18 @@ two axioms.
 
 -/
 -- it's an upper bound
-example (I : Type) (F : I → Filter α) (i : I) : F i ≤ lub F := sorry
+example (I : Type) (F : I → Filter α) (i : I) : F i ≤ lub F := by
+  intro s sh
+  simp [lub] at sh
+  exact sh i
 
 -- it's ≤ all other upper bounds
 example (I : Type) (F : I → Filter α) (G : Filter α) (hG : ∀ i, F i ≤ G) :
-    lub F ≤ G := sorry
+    lub F ≤ G := by
+  intro s sh
+  simp [lub]
+  intro i
+  exact hG i sh
 
 /-
 
@@ -97,10 +119,17 @@ def glb {I : Type} (F : I → Filter α) : Filter α :=
   lub fun G : {G : Filter α | ∀ i, (F i).sets ⊆ G.sets} ↦ G.1
 
 -- it's a lower bound
-example (I : Type) (F : I → Filter α) (i : I) : glb F ≤ F i := sorry
+example (I : Type) (F : I → Filter α) (i : I) : glb F ≤ F i := by
+  intro s sh
+  simp [glb, lub]
+  intro t h
+  exact h i sh
 
 -- it's ≥ all other lower bounds
 example (I : Type) (F : I → Filter α) (G : Filter α) (hG : ∀ i, G ≤ F i) :
-    G ≤ glb F := sorry
+    G ≤ glb F := by
+  intro s sh
+  simp [glb, lub] at sh
+  exact sh G hG
 
 end Section12sheet2

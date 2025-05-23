@@ -33,9 +33,28 @@ open Set
 
 def atTop (L : Type) [LinearOrder L] (e : L) : Filter L where
   sets := {X : Set L | ∃ x : L, ∀ y, x ≤ y → y ∈ X}
-  univ_sets := sorry
-  sets_of_superset := sorry
-  inter_sets := sorry
+  univ_sets := by
+    simp
+    use e
+  sets_of_superset := by
+    intro s t sh st
+    simp_all
+    exact Exists.imp (fun x => forall_imp (fun y => forall_imp (fun hxy => fun a => st a))) sh
+  inter_sets := by
+    intro s t sh th
+    simp_all
+    obtain ⟨x, sh⟩ := sh
+    obtain ⟨y, th⟩ := th
+    use max x y
+    intro z zh
+    constructor
+    · apply sh
+      rw [max_le_iff] at zh
+      exact zh.1
+    · apply th
+      rw [max_le_iff] at zh
+      exact zh.2
+
 /-
 
 ## the cofinite filter
@@ -62,9 +81,17 @@ that you can probably guess them yourself.
 -/
 def cofinite (α : Type) : Filter α where
   sets := {S : Set α | Sᶜ.Finite}
-  univ_sets := sorry
-  sets_of_superset := sorry
-  inter_sets := sorry
+  univ_sets := by
+    simp_all
+  sets_of_superset := by
+    intro s t sf h
+    rw [← compl_subset_compl] at h
+    exact Finite.subset sf h
+  inter_sets := by
+    intro s t hs ht
+    simp
+    rw [Set.compl_inter]
+    exact Finite.union hs ht
 
 /-
 
@@ -78,5 +105,7 @@ If you like this filter stuff, then formalise in Lean and prove the following:
 (4) Prove that the cofinite filter on `ℕ` is not principal.
 
 -/
+
+-- TODO
 
 end Section12sheet3

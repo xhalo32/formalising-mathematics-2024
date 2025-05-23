@@ -48,7 +48,19 @@ example : f.Bijective ↔
 -- please ask. There's lots of little Lean tricks which make this
 -- question not too bad, but there are lots of little pitfalls too.
 example : (∃ g : Y → X, f ∘ g = id ∧ g ∘ f = id) → f.Bijective := by
-  sorry
+  rintro ⟨g, fg, gf⟩
+  -- rw [Function.bijective_iff_has_inverse]
+  apply congrFun at fg
+  apply congrFun at gf
+  simp [Function.comp_apply] at *
+  constructor
+  · intro x y h
+    apply congrArg g at h
+    simp [gf] at h
+    exact h
+  · intro y
+    use g y
+    simp [fg]
 
 -- The other way is harder in Lean, unless you know about the `choose`
 -- tactic. Given `f` and a proof that it's a bijection, how do you
@@ -56,4 +68,13 @@ example : (∃ g : Y → X, f ∘ g = id ∧ g ∘ f = id) → f.Bijective := by
 -- `g`, and the `choose` tactic does this for you.
 -- If `hfs` is a proof that `f` is surjective, try `choose g hg using hfs`.
 example : f.Bijective → ∃ g : Y → X, f ∘ g = id ∧ g ∘ f = id := by
-  sorry
+  intro h
+  cases' h with inj sur
+  choose g hg using sur
+  use g
+  constructor
+  · ext y
+    apply hg
+  · ext x
+    apply inj
+    simp [hg]
